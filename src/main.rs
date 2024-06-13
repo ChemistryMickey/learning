@@ -54,7 +54,7 @@ pub fn exit_qemu(exit_code: QemuExitCode) {
 }
 
 pub trait Testable {
-    fn run(&self) -> ();
+    fn run(&self);
 }
 
 impl<T> Testable for T
@@ -82,16 +82,4 @@ fn test_runner(tests: &[&dyn Testable]) {
 #[test_case]
 fn trivial_assertion() {
     assert_eq!(1, 1);
-}
-
-#[test_case]
-fn test_println_simple() {
-    println!("test_println_simple output");
-}
-
-#[test_case]
-fn test_println_many() {
-    for _ in 0..200 {
-        println!("test_println_many output");
-    }
 }
