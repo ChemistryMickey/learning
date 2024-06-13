@@ -1,6 +1,5 @@
 #![no_std]
 #![no_main]
-
 mod vga_buffer;
 
 use core::panic::PanicInfo;
@@ -13,5 +12,7 @@ fn panic(_info: &PanicInfo) -> ! {
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
     vga_buffer::print_something();
+
+    #[allow(clippy::empty_loop)]
     loop {}
 }
