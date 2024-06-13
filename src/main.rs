@@ -16,12 +16,14 @@ pub extern "C" fn _start() -> ! {
     #[cfg(test)]
     test_main();
 
-    #[allow(clippy::empty_loop)]
-    loop {
-        use os::print;
-        print!("-");
-        for _ in 0..10000 {}
-    }
+    os::hlt_loop();
+
+    // #[allow(clippy::empty_loop)]
+    // loop {
+    //     use os::print;
+    //     print!("-");
+    //     for _ in 0..10000 {}
+    // }
 }
 
 /// This function is called on panic.
@@ -29,7 +31,7 @@ pub extern "C" fn _start() -> ! {
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
     println!("{}", info);
-    loop {}
+    os::hlt_loop();
 }
 
 #[cfg(test)]
