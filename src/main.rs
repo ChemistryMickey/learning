@@ -17,7 +17,11 @@ pub extern "C" fn _start() -> ! {
     test_main();
 
     #[allow(clippy::empty_loop)]
-    loop {}
+    loop {
+        use os::print;
+        print!("-");
+        for _ in 0..10000 {}
+    }
 }
 
 /// This function is called on panic.
