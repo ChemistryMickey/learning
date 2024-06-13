@@ -5,16 +5,21 @@
 #![reexport_test_harness_main = "test_main"]
 #![feature(abi_x86_interrupt)]
 
+pub mod gdt;
 pub mod interrupts;
 pub mod serial;
 pub mod vga_buffer;
 
 use core::panic::PanicInfo;
 
+//--------- Interrupt handler
+
 pub fn init() {
+    gdt::init();
     interrupts::init_idt();
 }
 
+// ---------------- Tests
 pub trait Testable {
     fn run(&self);
 }
@@ -51,6 +56,7 @@ pub fn test_panic_handler(info: &PanicInfo) -> ! {
 #[cfg(test)]
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
+    init();
     test_main();
 
     #[allow(clippy::empty_loop)]
