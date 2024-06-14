@@ -8,7 +8,6 @@ extern crate alloc;
 
 use bootloader::{entry_point, BootInfo};
 use core::panic::PanicInfo;
-use os::allocator::HEAP_SIZE;
 
 entry_point!(main);
 
