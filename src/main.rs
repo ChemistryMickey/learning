@@ -6,7 +6,7 @@
 
 use bootloader::{entry_point, BootInfo};
 use core::panic::PanicInfo;
-use os::println;
+use os::{alloc, println};
 
 entry_point!(kernel_main);
 
@@ -16,6 +16,8 @@ fn kernel_main(_boot_info: &'static BootInfo) -> ! {
     os::init();
 
     // ================= CODE GO HERE
+    use alloc::boxed::Box;
+    let x = Box::new(41);
     //==================
     #[cfg(test)]
     test_main();
