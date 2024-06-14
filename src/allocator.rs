@@ -1,14 +1,41 @@
 #![allow(clippy::needless_return)]
 
 use alloc::alloc::{GlobalAlloc, Layout};
+use bump::BumpAllocator;
 use core::ptr::null_mut;
-use linked_list_allocator::LockedHeap;
+// use linked_list_allocator::LockedHeap;
 use x86_64::{
     structures::paging::{
         mapper::MapToError, FrameAllocator, Mapper, Page, PageTableFlags, Size4KiB,
     },
     VirtAddr,
 };
+
+pub mod bump;
+
+#[global_allocator]
+static ALLOCATOR: Locked<BumpAllocator> = Locked::new(BumpAllocator::new());
+
+pub struct Locked<T> {
+    inner: spin::Mutex<T>,
+}
+
+impl<T> Locked<T> {
+    pub const fn new(inner: T) -> Self {
+        return Locked {
+            inner: spin::Mutex::new(inner),
+        };
+    }
+
+    pub fn lock(&self) -> spin::MutexGuard<T> {
+        return self.inner.lock();
+    }
+}
+
+fn align_up(addr: usize, align: usize) -> usize {
+    //Requires that 'align' is a power of 2
+    return (addr + align - 1) & !(align - 1);
+}
 
 pub const HEAP_START: usize = 0x_4444_4444_0000;
 pub const HEAP_SIZE: usize = 100 * 1024; // 100 kB
@@ -51,6 +78,3 @@ unsafe impl GlobalAlloc for Dummy {
         panic!("dealloc should never be called");
     }
 }
-
-#[global_allocator]
-static ALLOCATOR: LockedHeap = LockedHeap::empty();
