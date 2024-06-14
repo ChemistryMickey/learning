@@ -6,7 +6,7 @@
 
 use bootloader::{entry_point, BootInfo};
 use core::panic::PanicInfo;
-use os::println;
+use os::{memory::BootInfoFrameAllocator, println};
 
 entry_point!(kernel_main);
 
@@ -17,21 +17,18 @@ fn kernel_main(_boot_info: &'static BootInfo) -> ! {
 
     // ================= CODE GO HERE
     use os::memory;
-    use x86_64::{structures::paging::Translate, VirtAddr};
+    use x86_64::{structures::paging::Page, VirtAddr};
     let phys_mem_offset = VirtAddr::new(_boot_info.physical_memory_offset);
-    let mapper = unsafe { memory::init(phys_mem_offset) };
-    let addresses = [
-        0xb8000,                           //VGA buffer
-        0x201008,                          // a code page
-        0x0100_0020_1a10,                  //a stack page
-        _boot_info.physical_memory_offset, // virtual address mapped to physical address 0
-    ];
+    let mut mapper = unsafe { memory::init(phys_mem_offset) };
+    let mut frame_allocator = unsafe { BootInfoFrameAllocator::init(&_boot_info.memory_map) };
 
-    for &address in &addresses {
-        let virt = VirtAddr::new(address);
-        let phys = mapper.translate_addr(virt);
-        println!("{virt:?} -> {:?}", phys.unwrap());
-    }
+    // map an unused page
+    let page = Page::containing_address(VirtAddr::new(0xdeadbeef000));
+    memory::create_example_mapping(page, &mut mapper, &mut frame_allocator);
+
+    // write the string "New!" to the screen through the new mapping (without going through the VGA buffer)
+    let page_ptr: *mut u64 = page.start_address().as_mut_ptr();
+    unsafe { page_ptr.offset(400).write_volatile(0x_f021_f077_f065_f04e) };
     //==================
     #[cfg(test)]
     test_main();
