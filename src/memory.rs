@@ -1,5 +1,5 @@
 #![allow(clippy::needless_return)]
-#![deny(clippy::implicit_return)]
+#![allow(clippy::missing_safety_doc)]
 
 use bootloader::bootinfo::{MemoryMap, MemoryRegionType};
 use x86_64::{
@@ -10,7 +10,7 @@ use x86_64::{
 pub struct EmptyFrameAllocator;
 unsafe impl FrameAllocator<Size4KiB> for EmptyFrameAllocator {
     fn allocate_frame(&mut self) -> Option<PhysFrame<Size4KiB>> {
-        None
+        return None;
     }
 }
 
