@@ -17,7 +17,19 @@ fn kernel_main(_boot_info: &'static BootInfo) -> ! {
 
     // ================= CODE GO HERE
     use alloc::boxed::Box;
-    let x = Box::new(41);
+    use os::{
+        allocator,
+        memory::{self, BootInfoFrameAllocator},
+    };
+    use x86_64::VirtAddr;
+
+    let phys_mem_offset = VirtAddr::new(_boot_info.physical_memory_offset);
+    let mut mapper = unsafe { memory::init(phys_mem_offset) };
+    let mut frame_allocator = unsafe { BootInfoFrameAllocator::init(&_boot_info.memory_map) };
+
+    allocator::init_heap(&mut mapper, &mut frame_allocator).expect("heap initialization failed");
+
+    let x = Box::new(42);
     //==================
     #[cfg(test)]
     test_main();
