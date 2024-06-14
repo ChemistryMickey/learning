@@ -16,7 +16,7 @@ fn kernel_main(_boot_info: &'static BootInfo) -> ! {
     os::init();
 
     // ================= CODE GO HERE
-    use alloc::boxed::Box;
+    use alloc::{boxed::Box, rc::Rc, vec, vec::Vec};
     use os::{
         allocator,
         memory::{self, BootInfoFrameAllocator},
@@ -29,7 +29,23 @@ fn kernel_main(_boot_info: &'static BootInfo) -> ! {
 
     allocator::init_heap(&mut mapper, &mut frame_allocator).expect("heap initialization failed");
 
-    let x = Box::new(42);
+    let heap_value = Box::new(42);
+    println!("heap_value at {:p}", heap_value);
+
+    let mut vec = Vec::new();
+    for i in 0..500 {
+        vec.push(i);
+    }
+    println!("vec at {:p}", vec.as_slice());
+
+    let rc = Rc::new(vec![1, 2, 3]);
+    let cloned_rc = rc.clone();
+    println!(
+        "Current reference count is {}",
+        Rc::strong_count(&cloned_rc)
+    );
+    core::mem::drop(rc);
+    println!("reference count is {} now", Rc::strong_count(&cloned_rc));
     //==================
     #[cfg(test)]
     test_main();

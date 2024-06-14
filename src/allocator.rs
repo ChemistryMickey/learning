@@ -2,6 +2,7 @@
 
 use alloc::alloc::{GlobalAlloc, Layout};
 use core::ptr::null_mut;
+use linked_list_allocator::LockedHeap;
 use x86_64::{
     structures::paging::{
         mapper::MapToError, FrameAllocator, Mapper, Page, PageTableFlags, Size4KiB,
@@ -32,6 +33,10 @@ pub fn init_heap(
         unsafe { mapper.map_to(page, frame, flags, frame_allocator)?.flush() };
     }
 
+    unsafe {
+        ALLOCATOR.lock().init(HEAP_START, HEAP_SIZE);
+    }
+
     return Ok(());
 }
 
@@ -48,4 +53,4 @@ unsafe impl GlobalAlloc for Dummy {
 }
 
 #[global_allocator]
-static ALLOCATOR: Dummy = Dummy;
+static ALLOCATOR: LockedHeap = LockedHeap::empty();
