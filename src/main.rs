@@ -12,7 +12,7 @@ use os::{
 };
 use os::{
     println,
-    task::{simple_executor::SimpleExecutor, Task},
+    task::{keyboard, simple_executor::SimpleExecutor, Task},
 };
 use x86_64::VirtAddr;
 
@@ -32,6 +32,7 @@ fn kernel_main(_boot_info: &'static BootInfo) -> ! {
     // ================= CODE GO HERE
     let mut exector = SimpleExecutor::new();
     exector.spawn(Task::new(example_task()));
+    exector.spawn(Task::new(keyboard::print_keypresses()));
     exector.run();
     //==================
     #[cfg(test)]
@@ -39,13 +40,6 @@ fn kernel_main(_boot_info: &'static BootInfo) -> ! {
 
     println!("It didn't crash!");
     os::hlt_loop();
-
-    // #[allow(clippy::empty_loop)]
-    // loop {
-    //     use os::print;
-    //     print!("-");
-    //     for _ in 0..10000 {}
-    // }
 }
 
 async fn async_number() -> u32 {

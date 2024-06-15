@@ -1,5 +1,6 @@
 #![allow(clippy::needless_return)]
 
+pub mod keyboard;
 pub mod simple_executor;
 
 use alloc::boxed::Box;
