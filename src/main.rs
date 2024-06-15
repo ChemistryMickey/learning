@@ -6,7 +6,15 @@
 
 use bootloader::{entry_point, BootInfo};
 use core::panic::PanicInfo;
-use os::{alloc, println};
+use os::{
+    allocator,
+    memory::{self, BootInfoFrameAllocator},
+};
+use os::{
+    println,
+    task::{simple_executor::SimpleExecutor, Task},
+};
+use x86_64::VirtAddr;
 
 entry_point!(kernel_main);
 
@@ -15,37 +23,16 @@ fn kernel_main(_boot_info: &'static BootInfo) -> ! {
 
     os::init();
 
-    // ================= CODE GO HERE
-    use alloc::{boxed::Box, rc::Rc, vec, vec::Vec};
-    use os::{
-        allocator,
-        memory::{self, BootInfoFrameAllocator},
-    };
-    use x86_64::VirtAddr;
-
+    // setup heap
     let phys_mem_offset = VirtAddr::new(_boot_info.physical_memory_offset);
     let mut mapper = unsafe { memory::init(phys_mem_offset) };
     let mut frame_allocator = unsafe { BootInfoFrameAllocator::init(&_boot_info.memory_map) };
-
     allocator::init_heap(&mut mapper, &mut frame_allocator).expect("heap initialization failed");
 
-    let heap_value = Box::new(42);
-    println!("heap_value at {:p}", heap_value);
-
-    let mut vec = Vec::new();
-    for i in 0..500 {
-        vec.push(i);
-    }
-    println!("vec at {:p}", vec.as_slice());
-
-    let rc = Rc::new(vec![1, 2, 3]);
-    let cloned_rc = rc.clone();
-    println!(
-        "Current reference count is {}",
-        Rc::strong_count(&cloned_rc)
-    );
-    core::mem::drop(rc);
-    println!("reference count is {} now", Rc::strong_count(&cloned_rc));
+    // ================= CODE GO HERE
+    let mut exector = SimpleExecutor::new();
+    exector.spawn(Task::new(example_task()));
+    exector.run();
     //==================
     #[cfg(test)]
     test_main();
@@ -59,6 +46,16 @@ fn kernel_main(_boot_info: &'static BootInfo) -> ! {
     //     print!("-");
     //     for _ in 0..10000 {}
     // }
+}
+
+async fn async_number() -> u32 {
+    return 42;
+}
+
+async fn example_task() {
+    let num = async_number().await;
+
+    println!("async number: {num}");
 }
 
 /// This function is called on panic.
