@@ -1,8 +1,9 @@
 #![allow(clippy::needless_return)]
 
 // use bump::BumpAllocator;
-use linked_list::LinkedListAllocator;
+// use linked_list::LinkedListAllocator;
 // use linked_list_allocator::LockedHeap;
+use fixed_size_block::FixedSizeBlockAllocator;
 
 use x86_64::{
     structures::paging::{
@@ -12,10 +13,11 @@ use x86_64::{
 };
 
 pub mod bump;
+pub mod fixed_size_block;
 pub mod linked_list;
 
 #[global_allocator]
-static ALLOCATOR: Locked<LinkedListAllocator> = Locked::new(LinkedListAllocator::new());
+static ALLOCATOR: Locked<FixedSizeBlockAllocator> = Locked::new(FixedSizeBlockAllocator::new());
 
 pub struct Locked<T> {
     inner: spin::Mutex<T>,
